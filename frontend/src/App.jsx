@@ -8,7 +8,7 @@ import NotFound from "./components/pages/NotFound";
 
 
 function App() {
-  const authUser = false;
+  const authUser = true;
 
   return (
     <>
