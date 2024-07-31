@@ -1,4 +1,5 @@
 const InputField = ({ label, id, name, type = "text", onChange, value }) => {
+	const autocomplete = type === "password" ? "off" : "on";
 	return (
 		<div>
 			<label htmlFor={id} className='block text-sm font-medium text-gray-700'>
@@ -11,6 +12,7 @@ const InputField = ({ label, id, name, type = "text", onChange, value }) => {
 				name={name}
 				value={value}
 				onChange={onChange}
+				autoComplete={autocomplete}
 			/>
 		</div>
 	);

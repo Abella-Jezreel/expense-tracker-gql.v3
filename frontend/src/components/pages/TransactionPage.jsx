@@ -13,9 +13,16 @@ const TransactionPage = () => {
   const [formData, setFormData] = useState(initialData);
   const { description, paymentType, category, amount, location, date } = formData;
 
+
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     console.log("formData", formData);
+    try {
+      setFormData(initialData);
+    } catch (error) {
+      console.error("Transaction failed:", error);
+    }
   };
   const handleInputChange = (e) => {
     const { name, value } = e.target;

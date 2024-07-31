@@ -13,14 +13,28 @@ const categoryColorMap = {
 	// Add more categories and corresponding color classes as needed
 };
 
-const Card = ({ cardType }) => {
-	const cardClass = categoryColorMap[cardType];
+const Card = ({ transaction }) => {
+	const { category, description, amount, user, location, date, paymentType } = transaction;
+	const cardClass = categoryColorMap[category];
+
+	const capitalizeFirstLetter = (string) => {
+		return string.charAt(0).toUpperCase() + string.slice(1);
+	  };
+
+	  const formatDate = (timestamp) => {
+		const date = new Date(parseInt(timestamp, 10));
+		return date.toLocaleDateString('en-GB', {
+		  day: '2-digit',
+		  month: 'short',
+		  year: 'numeric'
+		});
+	  };
 
 	return (
 		<div className={`rounded-md p-4 bg-gradient-to-br ${cardClass}`}>
 			<div className='flex flex-col gap-3'>
 				<div className='flex flex-row items-center justify-between'>
-					<h2 className='text-lg font-bold text-white'>Saving</h2>
+					<h2 className='text-lg font-bold text-white'>{capitalizeFirstLetter(category)}</h2>
 					<div className='flex items-center gap-2'>
 						<FaTrash className={"cursor-pointer"} />
 						<Link to={`/transaction/123`}>
@@ -30,24 +44,24 @@ const Card = ({ cardType }) => {
 				</div>
 				<p className='text-white flex items-center gap-1'>
 					<BsCardText />
-					Description: Salary
+					Description: {capitalizeFirstLetter(description)}
 				</p>
 				<p className='text-white flex items-center gap-1'>
 					<MdOutlinePayments />
-					Payment Type: Cash
+					Payment Type: {capitalizeFirstLetter(paymentType)}
 				</p>
 				<p className='text-white flex items-center gap-1'>
 					<FaSackDollar />
-					Amount: $150
+					Amount: ${amount}
 				</p>
 				<p className='text-white flex items-center gap-1'>
 					<FaLocationDot />
-					Location: New York
+					Location: {location}
 				</p>
 				<div className='flex justify-between items-center'>
-					<p className='text-xs text-black font-bold'>21 Sep, 2001</p>
+					<p className='text-xs text-black font-bold'>{formatDate(date)}</p>
 					<img
-						src={"https://tecdn.b-cdn.net/img/new/avatars/2.webp"}
+						src={user?.profilePicture}
 						className='h-8 w-8 border rounded-full'
 						alt=''
 					/>
