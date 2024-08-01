@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { Doughnut } from "react-chartjs-2";
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from "chart.js";
 import Cards from "../ui/Cards";
@@ -16,17 +15,49 @@ const HomePage = () => {
   const { data: userData } = useQuery(GET_USER);
   const [logoutUser, { loading: logoutLoading, error: logoutError }] =
     useMutation(LOGOUT_USER, {
-      refetchQueries: ["AuthUser"],
+      refetchQueries: ["AuthUser", "Transactions"],
       variables: {},
     });
   const { profilePicture } = userData?.authUser;
+
+  console.log(userData, "userData");
+  const transactions = userData?.authUser?.transactions;
+
+  let data = [0, 0, 0]; // Default values in case transactions is undefined
+
+if (transactions) {
+  const categoryCounts = transactions.reduce((acc, transaction) => {
+    const category = transaction.category;
+    if (!acc[category]) {
+      acc[category] = 0;
+    }
+    acc[category]++;
+    return acc;
+  }, {});
+
+  const savingsCount = categoryCounts['saving'] || 0;
+  const expenseCount = categoryCounts['expense'] || 0;
+  const investmentCount = categoryCounts['investment'] || 0;
+
+  const totalCount = savingsCount + expenseCount + investmentCount;
+
+  if (totalCount > 0) {
+    const savingsPercentage = (savingsCount / totalCount) * 100;
+    const expensePercentage = (expenseCount / totalCount) * 100;
+    const investmentPercentage = (investmentCount / totalCount) * 100;
+
+    data = [savingsPercentage, expensePercentage, investmentPercentage];
+  }
+
+  console.log(data, "Pie Chart Data");
+}
 
   const chartData = {
     labels: ["Saving", "Expense", "Investment"],
     datasets: [
       {
         label: "%",
-        data: [13, 8, 3],
+        data: data,
         backgroundColor: [
           "rgba(75, 192, 192)",
           "rgba(255, 99, 132)",

@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useMutation } from "@apollo/client";
-import CREATE_TRANSACTION from "../../graphql/mutations/transaction.mutation";
+import { CREATE_TRANSACTION } from "../../graphql/mutations/transaction.mutation";
 
 const TransactionForm = () => {
   const initialData = {
@@ -16,11 +16,11 @@ const TransactionForm = () => {
     formData;
 
   const [createTransaction, { loading }] = useMutation(CREATE_TRANSACTION, {
-	refetchQueries: ["Transactions"],
+    refetchQueries: ["Transactions", "AuthUser"],
     variables: {
       input: {
         ...formData,
-		amount: parseFloat(formData.amount),
+        amount: parseFloat(formData.amount),
       },
     },
   });
@@ -199,7 +199,7 @@ const TransactionForm = () => {
           from-pink-500 to-pink-500 hover:from-pink-600 hover:to-pink-600
 						disabled:opacity-70 disabled:cursor-not-allowed"
         type="submit"
-		disabled={loading}
+        disabled={loading}
       >
         {loading ? "Loading..." : "Add Transaction"}
       </button>

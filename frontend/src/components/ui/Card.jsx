@@ -5,17 +5,25 @@ import { FaSackDollar } from "react-icons/fa6";
 import { FaTrash } from "react-icons/fa";
 import { HiPencilAlt } from "react-icons/hi";
 import { Link } from "react-router-dom";
+import { DELETE_TRANSACTION } from "../../graphql/mutations/transaction.mutation";
+import { useMutation } from "@apollo/client";
 
 const categoryColorMap = {
 	saving: "from-green-700 to-green-400",
 	expense: "from-pink-800 to-pink-600",
 	investment: "from-blue-700 to-blue-400",
-	// Add more categories and corresponding color classes as needed
 };
 
 const Card = ({ transaction }) => {
-	const { category, description, amount, user, location, date, paymentType } = transaction;
+	const { category, description, amount, user, location, date, paymentType, _id } = transaction;
 	const cardClass = categoryColorMap[category];
+
+	const [deleteTransaction] = useMutation(DELETE_TRANSACTION, {
+		refetchQueries: ["Transactions", "AuthUser"],
+		variables: {
+		  transactionId: _id,
+		},
+	  });
 
 	const capitalizeFirstLetter = (string) => {
 		return string.charAt(0).toUpperCase() + string.slice(1);
@@ -30,14 +38,19 @@ const Card = ({ transaction }) => {
 		});
 	  };
 
+	 const onClickDelete = () => {
+		deleteTransaction();
+	  };
+
+
 	return (
 		<div className={`rounded-md p-4 bg-gradient-to-br ${cardClass}`}>
 			<div className='flex flex-col gap-3'>
 				<div className='flex flex-row items-center justify-between'>
 					<h2 className='text-lg font-bold text-white'>{capitalizeFirstLetter(category)}</h2>
 					<div className='flex items-center gap-2'>
-						<FaTrash className={"cursor-pointer"} />
-						<Link to={`/transaction/123`}>
+						<FaTrash className={"cursor-pointer"} onClick={onClickDelete}/>
+						<Link to={`/transaction/${_id}`}>
 							<HiPencilAlt className='cursor-pointer' size={20} />
 						</Link>
 					</div>
