@@ -8,14 +8,15 @@ import GET_USER from "../../graphql/queries/user.query";
 import { useMutation } from "@apollo/client";
 import { useQuery } from "@apollo/client";
 import toast from "react-hot-toast";
+import { useApolloClient } from '@apollo/client';
 
 ChartJS.register(ArcElement, Tooltip, Legend);
 
 const HomePage = () => {
   const { data: userData } = useQuery(GET_USER);
+  const client = useApolloClient();
   const [logoutUser, { loading: logoutLoading, error: logoutError }] =
     useMutation(LOGOUT_USER, {
-      refetchQueries: ["AuthUser", "Transactions"],
       variables: {},
     });
   const { profilePicture } = userData?.authUser;
@@ -80,6 +81,7 @@ if (transactions) {
     console.log("Logging out...");
     try {
       await logoutUser();
+      await client.cache.reset();
       toast.success("Logged out successfully");
     } catch {
       toast.error(logoutError.message);
