@@ -8,15 +8,10 @@ import NotFound from "./components/pages/NotFound";
 import { useQuery } from "@apollo/client";
 import GET_USER from "./graphql/queries/user.query";
 import { Toaster } from "react-hot-toast";
-import Cookies from 'js-cookie';
 
 function App() {
   const { data, loading, error } = useQuery(GET_USER);
   const user = data?.authUser;
-  const sessionCookie = Cookies.get('connect.sid');
-
-  console.log(user, 'user');
-  console.log(sessionCookie, 'sessionCookie');
 
   if (loading) return <p>Loading...</p>;
   if (error) return <p>Error: {error.message}</p>;

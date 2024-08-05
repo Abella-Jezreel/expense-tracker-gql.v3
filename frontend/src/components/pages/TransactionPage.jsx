@@ -4,7 +4,11 @@ import { UPDATE_TRANSACTION } from "../../graphql/mutations/transaction.mutation
 import { useMutation } from "@apollo/client";
 import { useQuery } from "@apollo/client";
 import { useParams } from "react-router-dom";
-import { GET_TRANSACTION } from "../../graphql/queries/transaction.query";
+import {
+  GET_TRANSACTION,
+  GET_TRANSACTIONS,
+  GET_CATEGORY_STATS,
+} from "../../graphql/queries/transaction.query";
 import toast from "react-hot-toast";
 
 const TransactionPage = () => {
@@ -18,7 +22,6 @@ const TransactionPage = () => {
 
   const transaction = transactionData?.transaction;
 
-  console.log(transaction, "transaction");
   const [formData, setFormData] = useState({
     description: transaction?.description || "",
     paymentType: transaction?.paymentType || "",
@@ -29,6 +32,66 @@ const TransactionPage = () => {
   });
 
   const [updateTransaction, { loading }] = useMutation(UPDATE_TRANSACTION, {
+    update(cache, { data: { updateTransaction } }) {
+      try {
+        // Log the cache data before the update
+        const dataBefore = cache.readQuery({ query: GET_TRANSACTIONS });
+        console.log("Cache data before update:", dataBefore);
+
+        if (dataBefore && dataBefore.transactions) {
+          const { transactions } = dataBefore;
+
+          cache.writeQuery({
+            query: GET_TRANSACTIONS,
+            data: {
+              transactions: [...transactions, updateTransaction],
+            },
+          });
+
+          // Log the cache data after the update
+          const dataAfter = cache.readQuery({ query: GET_TRANSACTIONS });
+          console.log("Cache data after update:", dataAfter);
+        } else {
+          console.warn("No transactions found in cache.");
+        }
+
+        // Read and update category statistics
+        const existingStats = cache.readQuery({ query: GET_CATEGORY_STATS });
+        console.log("Category Stats before update:", existingStats);
+
+        // Update the cache with the new transaction data
+        const newStats = existingStats.categoryStatistics.map((stat) => {
+          if (stat.category === updateTransaction.category) {
+            const oldAmount = transaction?.amount || 0;
+            const newAmount = updateTransaction.amount;
+
+            let updatedTotalAmount;
+            if (oldAmount > newAmount) {
+              updatedTotalAmount = stat.totalAmount - (oldAmount - newAmount);
+            } else {
+              updatedTotalAmount = stat.totalAmount + (newAmount - oldAmount);
+            }
+
+            return {
+              ...stat,
+              totalAmount: updatedTotalAmount,
+            };
+          }
+          return stat;
+        });
+
+        cache.writeQuery({
+          query: GET_CATEGORY_STATS,
+          data: { categoryStatistics: newStats },
+        });
+
+        // Log the category stats after the update
+        const updatedStats = cache.readQuery({ query: GET_CATEGORY_STATS });
+        console.log("Category Stats after update:", updatedStats);
+      } catch (error) {
+        console.error("Error updating cache:", error);
+      }
+    },
     variables: {
       input: {
         description: formData.description,

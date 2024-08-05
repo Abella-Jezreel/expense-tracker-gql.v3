@@ -10,9 +10,38 @@ import {
   ApolloProvider,
 } from "@apollo/client";
 
+const cache = new InMemoryCache({
+  typePolicies: {
+    Query: {
+      fields: {
+        transaction: {
+          merge(existing = [], incoming) {
+            return incoming;
+          },
+        },
+        categoryStatistics: {
+          merge(existing = [], incoming) {
+            return incoming;
+          },
+        },
+        transactions: {
+          merge(existing = [], incoming) {
+            return incoming;
+          },
+        },
+        authUser: {
+          merge(existing = [], incoming) {
+            return incoming;
+          },
+        }
+      },
+    },
+  },
+});
+
 const client = new ApolloClient({
   uri: "http://localhost:4000/graphql", // Server URL
-  cache: new InMemoryCache(), // Store data in memory
+  cache: cache, // Store data in memory
   credentials: "include", // Send cookies
 });
 

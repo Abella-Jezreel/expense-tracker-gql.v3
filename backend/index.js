@@ -51,16 +51,28 @@ app.use(
     saveUninitialized: false,
     store: store,
     cookie: { 
-      maxAge: 1000 * 60 * 60 * 24 * 7, // 1 day
+      maxAge: 1000 * 60 * 60 * 24 * 7, // 1 week
       httpOnly: true, // don't let JS code access cookies
+      secure: process.env.NODE_ENV === 'production', // only set cookies over HTTPS in production
+      sameSite: 'strict', // mitigate CSRF attacks
     },
   })
 );
-
+ 
+// Regenerate session ID on login
+app.post('/login', (req, res, next) => {
+  req.session.regenerate((err) => {
+    if (err) {
+      return next(err);
+    }
+    // Continue with login process
+    next();
+  });
+});
+ 
 // Passport middleware
 app.use(passport.initialize());
 app.use(passport.session());
-
 
 // Connect to MongoDB
 await connectDB();

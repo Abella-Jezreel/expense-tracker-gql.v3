@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useMutation } from "@apollo/client";
 import { CREATE_TRANSACTION } from "../../graphql/mutations/transaction.mutation";
+import { GET_TRANSACTIONS, GET_CATEGORY_STATS } from "../../graphql/queries/transaction.query";
 
 const TransactionForm = () => {
   const initialData = {
@@ -16,7 +17,60 @@ const TransactionForm = () => {
     formData;
 
   const [createTransaction, { loading }] = useMutation(CREATE_TRANSACTION, {
-    refetchQueries: ["Transactions", "AuthUser"],
+    // refetchQueries: ["Transactions", "AuthUser", "CategoryStatistics"],
+    update(cache, { data: { createTransaction } }) {
+      try {
+        // Log the cache data before the update
+        const dataBefore = cache.readQuery({ query: GET_TRANSACTIONS });
+        console.log("Cache data before update:", dataBefore);
+    
+        if (dataBefore && dataBefore.transactions) {
+          const { transactions } = dataBefore;
+    
+          cache.writeQuery({
+            query: GET_TRANSACTIONS,
+            data: {
+              transactions: [...transactions, createTransaction],
+            },
+          });
+    
+          // Log the cache data after the update
+          const dataAfter = cache.readQuery({ query: GET_TRANSACTIONS });
+          console.log("Cache data after update:", dataAfter);
+        } else {
+          console.warn("No transactions found in cache.");
+        }
+    
+        // Read and update category statistics
+        const existingStats = cache.readQuery({ query: GET_CATEGORY_STATS });
+        console.log('Category Stats before update:', existingStats);
+
+        // Update the cache with the new transaction data
+        const newStats = existingStats.categoryStatistics.map(stat => {
+          if (stat.category === createTransaction.category) {
+            return {
+              ...stat,
+              totalAmount: stat.totalAmount + createTransaction.amount,
+            };
+          }
+          return stat;
+        });
+
+        cache.writeQuery({
+          query: GET_CATEGORY_STATS,
+          data: { categoryStatistics: newStats },
+        });
+
+        // Log the category stats after the update
+        const updatedStats = cache.readQuery({ query: GET_CATEGORY_STATS });
+        console.log('Category Stats after update:', updatedStats);
+      } catch (error) {
+        console.error("Error updating cache:", error);
+      }
+    },
+    onError(error) {
+      console.error("Error creating transaction:", error);
+    },
     variables: {
       input: {
         ...formData,
